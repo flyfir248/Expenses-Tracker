@@ -75,6 +75,11 @@ def export_csv():
     # Query all expenses
     expenses = Expense.query.all()
 
+    # Calculate metrics
+    total_expenses = sum(expense.amount for expense in expenses)
+    average_expense = total_expenses / len(expenses) if expenses else 0
+    highest_expense = max(expense.amount for expense in expenses) if expenses else 0
+
     # Prepare data for CSV
     data = [{
         "Amount": expense.amount,
@@ -86,9 +91,18 @@ def export_csv():
     # Convert to DataFrame
     df = pd.DataFrame(data)
 
-    # Save to CSV
+    # Add metrics to the DataFrame
+    metrics_df = pd.DataFrame({
+        "Metric": ["Total Expenses", "Average Expense", "Highest Expense"],
+        "Value": [total_expenses, average_expense, highest_expense]
+    })
+
+    # Save metrics to the top of the CSV file
     csv_path = os.path.join('static', 'expenses.csv')
-    df.to_csv(csv_path, index=False)
+    with open(csv_path, 'w') as f:
+        metrics_df.to_csv(f, index=False)
+        f.write('\n')  # Add a blank line between metrics and data
+        df.to_csv(f, index=False)
 
     # Send the file to the user
     return send_file(csv_path, as_attachment=True)
@@ -97,6 +111,11 @@ def export_csv():
 def export_pdf():
     # Query all expenses
     expenses = Expense.query.all()
+
+    # Calculate metrics
+    total_expenses = sum(expense.amount for expense in expenses)
+    average_expense = total_expenses / len(expenses) if expenses else 0
+    highest_expense = max(expense.amount for expense in expenses) if expenses else 0
 
     # Set up PDF
     pdf_path = os.path.join('static', 'expenses.pdf')
@@ -107,15 +126,21 @@ def export_pdf():
     c.setFont("Helvetica-Bold", 16)
     c.drawString(100, height - 100, "Expense Report")
 
+    # Metrics
+    c.setFont("Helvetica", 12)
+    c.drawString(50, height - 140, f"Total Expenses: ${total_expenses:.2f}")
+    c.drawString(50, height - 160, f"Average Expense: ${average_expense:.2f}")
+    c.drawString(50, height - 180, f"Highest Expense: ${highest_expense:.2f}")
+
     # Table headers
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(50, height - 140, "Amount")
-    c.drawString(150, height - 140, "Category")
-    c.drawString(300, height - 140, "Description")
-    c.drawString(450, height - 140, "Date")
+    c.drawString(50, height - 220, "Amount")
+    c.drawString(150, height - 220, "Category")
+    c.drawString(300, height - 220, "Description")
+    c.drawString(450, height - 220, "Date")
 
     # Table rows
-    y = height - 160
+    y = height - 240
     c.setFont("Helvetica", 12)
     for expense in expenses:
         c.drawString(50, y, f"${expense.amount:.2f}")
