@@ -1,76 +1,78 @@
 body {
-      background-color: #f8f9fa;
-        }
-.expense-form, .expense-list, .expense-chart {
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .expense-item {
-            border-bottom: 1px solid #e9ecef;
-            padding: 10px 0;
-        }
-        .expense-item:last-child {
-            border-bottom: none;
-        }
-        .category-tag {
-            font-size: 0.8em;
-            padding: 3px 8px;
-            border-radius: 10px;
-            background-color: #e9ecef;
-        }
-        footer {
-           background-color: #262626;
-           margin-top: 40px;
-           color: #333;
-           padding-top: 40px;
-           padding: 10px;
-           text-align: center;
-           font-size: 14px;
-           position: relative;
-           bottom: 0;
-           width: 100%;
-        }
-
-        .footer a {
-           color: #fff;
-           text-decoration: none;
-        }
-
-        .footer a:hover {
-           color: #007bff;
-        }
-
-        .footer p {
-           font-family: Arial, sans-serif;
-           font-size: 12px;
-           font-weight: bold;
-        }
-
-        .social-icons {
-           display: flex;
-           justify-content: center;
-           align-items: center;
-           margin-bottom: 20px;
-        }
-
-        .social-icons a {
-           margin: 0 10px;
-        }
-
-        .social-icons img {
-           max-width: 30px;
-           height: auto;
-        }
-
-        .footer p {
-            color: white;
-            font-family: 'Times New Roman', Times, serif;
-        }
-.stat-card {
     background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+.expense-form, .expense-list, .expense-chart {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.expense-item {
+    border-bottom: 1px solid #e9ecef;
+    padding: 10px 0;
+}
+
+.expense-item:last-child {
+    border-bottom: none;
+}
+
+.category-tag {
+    font-size: 0.8em;
+    padding: 3px 8px;
+    border-radius: 10px;
+    background-color: #e9ecef;
+}
+
+footer {
+    background-color: #262626;
+    color: #ffffff;
+    padding-top: 40px;
+    padding-bottom: 20px;
+    text-align: center;
+    font-size: 14px;
+    width: 100%;
+}
+
+.footer a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    color: #007bff;
+}
+
+.footer p {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.social-icons a {
+    margin: 0 10px;
+}
+
+.social-icons img {
+    max-width: 30px;
+    height: auto;
+}
+
+.stat-card {
+    background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
     text-align: center;
@@ -90,13 +92,13 @@ body {
 }
 
 .header-image {
-            text-align: center;
-            margin-top: 20px;
-        }
+    text-align: center;
+    margin-top: 20px;
+}
 
 .header-image img {
-    max-width: 100%;      /* Ensures the image scales down if the viewport is smaller */
-    max-height: 100px;    /* Set a maximum height to keep the image from being too tall */
-    width: auto;          /* Maintains the aspect ratio */
-    height: auto;         /* Ensures the height scales proportionally */
+    max-width: 80%;      /* Ensure the image scales down if the viewport is smaller */
+    max-height: 300px;   /* Set a maximum height to keep the image from being too tall */
+    width: auto;         /* Maintain the aspect ratio */
+    height: auto;        /* Ensure the height scales proportionally */
 }
