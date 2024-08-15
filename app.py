@@ -3,6 +3,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import render_template
 from sqlalchemy import func
 from datetime import datetime
+import pandas as pd
+from flask import send_file
+import os
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///expenses.db'
@@ -64,6 +69,65 @@ def delete_expense(id):
     db.session.delete(expense_to_delete)
     db.session.commit()
     return redirect(url_for('index'))
+
+@app.route('/export/csv')
+def export_csv():
+    # Query all expenses
+    expenses = Expense.query.all()
+
+    # Prepare data for CSV
+    data = [{
+        "Amount": expense.amount,
+        "Category": expense.category,
+        "Description": expense.description,
+        "Date": expense.date.strftime('%Y-%m-%d %H:%M')
+    } for expense in expenses]
+
+    # Convert to DataFrame
+    df = pd.DataFrame(data)
+
+    # Save to CSV
+    csv_path = os.path.join('static', 'expenses.csv')
+    df.to_csv(csv_path, index=False)
+
+    # Send the file to the user
+    return send_file(csv_path, as_attachment=True)
+
+@app.route('/export/pdf')
+def export_pdf():
+    # Query all expenses
+    expenses = Expense.query.all()
+
+    # Set up PDF
+    pdf_path = os.path.join('static', 'expenses.pdf')
+    c = canvas.Canvas(pdf_path, pagesize=letter)
+    width, height = letter
+
+    # Title
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(100, height - 100, "Expense Report")
+
+    # Table headers
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, height - 140, "Amount")
+    c.drawString(150, height - 140, "Category")
+    c.drawString(300, height - 140, "Description")
+    c.drawString(450, height - 140, "Date")
+
+    # Table rows
+    y = height - 160
+    c.setFont("Helvetica", 12)
+    for expense in expenses:
+        c.drawString(50, y, f"${expense.amount:.2f}")
+        c.drawString(150, y, expense.category)
+        c.drawString(300, y, expense.description or "N/A")
+        c.drawString(450, y, expense.date.strftime('%Y-%m-%d %H:%M'))
+        y -= 20
+
+    c.save()
+
+    # Send the file to the user
+    return send_file(pdf_path, as_attachment=True)
 
 if __name__ == '__main__':
     with app.app_context():
