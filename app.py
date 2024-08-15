@@ -45,6 +45,13 @@ def index():
                            chart_categories=categories,
                            chart_data=totals)
 
+@app.route('/delete/<int:id>', methods=['POST'])
+def delete_expense(id):
+    expense_to_delete = Expense.query.get_or_404(id)
+    db.session.delete(expense_to_delete)
+    db.session.commit()
+    return redirect(url_for('index'))
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
