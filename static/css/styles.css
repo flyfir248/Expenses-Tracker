@@ -88,3 +88,15 @@ body {
     font-weight: bold;
     color: #007bff;
 }
+
+.header-image {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+.header-image img {
+    max-width: 100%;      /* Ensures the image scales down if the viewport is smaller */
+    max-height: 100px;    /* Set a maximum height to keep the image from being too tall */
+    width: auto;          /* Maintains the aspect ratio */
+    height: auto;         /* Ensures the height scales proportionally */
+}
