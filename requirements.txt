@@ -2,3 +2,4 @@ Flask
 Flask-SQLalchemy
 Pandas
 reportlab
+Gunicorn
