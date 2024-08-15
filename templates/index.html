@@ -72,6 +72,39 @@
         </div>
     </div>
 
+    <!-- Statistics Section -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h2>Total Expenses</h2>
+                <p>${{ "%.2f"|format(total_expenses) }}</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h2>Average Expense</h2>
+                <p>${{ "%.2f"|format(average_expense) }}</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h2>Highest Expense</h2>
+                <p>${{ "%.2f"|format(highest_expense) }}</p>
+            </div>
+        </div>
+    </div>
+    <!-- Expense Form and List -->
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Add Expense Form -->
+            ...
+        </div>
+        <div class="col-md-8">
+            <!-- List of Expenses -->
+            ...
+        </div>
+    </div>
+</div>
     <!-- Data for the chart -->
     <script id="chart-categories" type="application/json">
         {{ chart_categories|tojson|safe }}

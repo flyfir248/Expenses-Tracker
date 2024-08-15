@@ -31,6 +31,15 @@ def add_expense():
 def index():
     expenses = Expense.query.order_by(Expense.date.desc()).all()
 
+    # Calculate total expenses
+    total_expenses = db.session.query(func.sum(Expense.amount)).scalar() or 0.0
+
+    # Calculate average expense
+    average_expense = db.session.query(func.avg(Expense.amount)).scalar() or 0.0
+
+    # Find the highest expense
+    highest_expense = db.session.query(func.max(Expense.amount)).scalar() or 0.0
+
     # Calculate total expenses by category
     category_totals = db.session.query(
         Expense.category,
@@ -42,8 +51,12 @@ def index():
 
     return render_template('index.html',
                            expenses=expenses,
+                           total_expenses=total_expenses,
+                           average_expense=average_expense,
+                           highest_expense=highest_expense,
                            chart_categories=categories,
                            chart_data=totals)
+
 
 @app.route('/delete/<int:id>', methods=['POST'])
 def delete_expense(id):
