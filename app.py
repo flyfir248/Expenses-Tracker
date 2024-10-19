@@ -5,7 +5,7 @@ import pandas as pd
 import os
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
 app = Flask(__name__)
 
