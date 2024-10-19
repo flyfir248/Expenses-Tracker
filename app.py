@@ -9,12 +9,15 @@ from dotenv import load_dotenv
 
 app = Flask(__name__)
 
-# Initialize Supabase client
+
+#load_dotenv()  # Load environment variables from .env file
 # Initialize Supabase client using environment variables
 url = os.getenv('SUPABASE_URL')  # Fetch URL from environment variable
-key = os.getenv('SUPABASE_KEY')    # Fetch Key from environment variable
+key = os.getenv('SUPABASE_KEY')   # Fetch Key from environment variable
 
-load_dotenv()  # Load environment variables from .env file
+if url is None or key is None:
+    raise ValueError("Supabase URL and Key must be set in the .env file")
+
 supabase = create_client(url, key)
 
 @app.route('/add_goal', methods=['POST'])
