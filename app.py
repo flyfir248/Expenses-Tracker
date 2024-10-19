@@ -12,8 +12,8 @@ app = Flask(__name__)
 
 #load_dotenv()  # Load environment variables from .env file
 # Initialize Supabase client using environment variables
-url = os.getenv('SUPABASE_URL')  # Fetch URL from environment variable
-key = os.getenv('SUPABASE_KEY')   # Fetch Key from environment variable
+url = os.environ.get('SUPABASE_URL')  # Fetch URL from environment variable
+key = os.environ.get('SUPABASE_KEY')   # Fetch Key from environment variable
 
 if url is None or key is None:
     raise ValueError("Supabase URL and Key must be set in the .env file")
