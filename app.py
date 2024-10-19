@@ -1,58 +1,92 @@
-from flask import Flask, render_template, request, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
-from flask import render_template
-from sqlalchemy import func
+from flask import Flask, render_template, request, redirect, url_for, send_file
+from supabase import create_client
 from datetime import datetime
 import pandas as pd
-from flask import send_file
 import os
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from dotenv import load_dotenv
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///expenses.db'
-db = SQLAlchemy(app)
 
-class Expense(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    amount = db.Column(db.Float, nullable=False)
-    category = db.Column(db.String(50), nullable=False)
-    description = db.Column(db.String(200))
-    date = db.Column(db.DateTime, default=datetime.utcnow)
+# Initialize Supabase client
+# Initialize Supabase client using environment variables
+url = os.getenv('SUPABASE_URL')  # Fetch URL from environment variable
+key = os.getenv('SUPABASE_KEY')    # Fetch Key from environment variable
 
+load_dotenv()  # Load environment variables from .env file
+supabase = create_client(url, key)
+
+@app.route('/add_goal', methods=['POST'])
+def add_goal():
+    name = request.form['name']
+    target_amount = float(request.form['target_amount'])
+    due_date = request.form['due_date']
+    description = request.form['description']
+
+    data = supabase.table('savings_goal').insert({
+        "name": name,
+        "target_amount": target_amount,
+        "due_date": due_date,
+        "description": description,
+        "saved_amount": 0.0
+    }).execute()
+
+    return redirect(url_for('view_goals'))
+
+@app.route('/goals')
+def view_goals():
+    response = supabase.table('savings_goal').select("*").execute()
+    goals = response.data
+    return render_template('goals.html', goals=goals)
 
 @app.route('/add', methods=['POST'])
 def add_expense():
-    amount = request.form['amount']
+    amount = float(request.form['amount'])
     category = request.form['category']
     description = request.form['description']
-    new_expense = Expense(amount=amount, category=category, description=description)
-    db.session.add(new_expense)
-    db.session.commit()
-    return redirect(url_for('index'))
+    date = datetime.utcnow().isoformat()
 
+    data = supabase.table('expense').insert({
+        "amount": amount,
+        "category": category,
+        "description": description,
+        "date": date
+    }).execute()
+
+    return redirect(url_for('index'))
 
 @app.route('/')
 def index():
-    expenses = Expense.query.order_by(Expense.date.desc()).all()
+
+    response = supabase.table('expense').select("*").order('date', desc=True).execute()
+    expenses = response.data
+
+    # Convert string date to datetime object for all expenses
+    for expense in expenses:
+        expense['date'] = datetime.fromisoformat(expense['date'])
 
     # Calculate total expenses
-    total_expenses = db.session.query(func.sum(Expense.amount)).scalar() or 0.0
+    total_expenses = sum(expense['amount'] for expense in expenses)
 
     # Calculate average expense
-    average_expense = db.session.query(func.avg(Expense.amount)).scalar() or 0.0
+    average_expense = total_expenses / len(expenses) if expenses else 0.0
 
     # Find the highest expense
-    highest_expense = db.session.query(func.max(Expense.amount)).scalar() or 0.0
+    highest_expense = max(expense['amount'] for expense in expenses) if expenses else 0.0
 
     # Calculate total expenses by category
-    category_totals = db.session.query(
-        Expense.category,
-        func.sum(Expense.amount).label('total')
-    ).group_by(Expense.category).all()
+    category_totals = {}
+    for expense in expenses:
+        category = expense['category']
+        amount = expense['amount']
+        if category in category_totals:
+            category_totals[category] += amount
+        else:
+            category_totals[category] = amount
 
-    categories = [cat for cat, _ in category_totals]
-    totals = [float(total) for _, total in category_totals]
+    categories = list(category_totals.keys())
+    totals = list(category_totals.values())
 
     return render_template('index.html',
                            expenses=expenses,
@@ -62,30 +96,27 @@ def index():
                            chart_categories=categories,
                            chart_data=totals)
 
-
 @app.route('/delete/<int:id>', methods=['POST'])
 def delete_expense(id):
-    expense_to_delete = Expense.query.get_or_404(id)
-    db.session.delete(expense_to_delete)
-    db.session.commit()
+    data = supabase.table('expense').delete().eq('id', id).execute()
     return redirect(url_for('index'))
 
 @app.route('/export/csv')
 def export_csv():
-    # Query all expenses
-    expenses = Expense.query.all()
+    response = supabase.table('expense').select("*").execute()
+    expenses = response.data
 
     # Calculate metrics
-    total_expenses = sum(expense.amount for expense in expenses)
+    total_expenses = sum(expense['amount'] for expense in expenses)
     average_expense = total_expenses / len(expenses) if expenses else 0
-    highest_expense = max(expense.amount for expense in expenses) if expenses else 0
+    highest_expense = max(expense['amount'] for expense in expenses) if expenses else 0
 
     # Prepare data for CSV
     data = [{
-        "Amount": expense.amount,
-        "Category": expense.category,
-        "Description": expense.description,
-        "Date": expense.date.strftime('%Y-%m-%d %H:%M')
+        "Amount": expense['amount'],
+        "Category": expense['category'],
+        "Description": expense['description'],
+        "Date": expense['date']
     } for expense in expenses]
 
     # Convert to DataFrame
@@ -109,13 +140,13 @@ def export_csv():
 
 @app.route('/export/pdf')
 def export_pdf():
-    # Query all expenses
-    expenses = Expense.query.all()
+    response = supabase.table('expense').select("*").execute()
+    expenses = response.data
 
     # Calculate metrics
-    total_expenses = sum(expense.amount for expense in expenses)
+    total_expenses = sum(expense['amount'] for expense in expenses)
     average_expense = total_expenses / len(expenses) if expenses else 0
-    highest_expense = max(expense.amount for expense in expenses) if expenses else 0
+    highest_expense = max(expense['amount'] for expense in expenses) if expenses else 0
 
     # Set up PDF
     pdf_path = os.path.join('static', 'expenses.pdf')
@@ -143,10 +174,10 @@ def export_pdf():
     y = height - 240
     c.setFont("Helvetica", 12)
     for expense in expenses:
-        c.drawString(50, y, f"${expense.amount:.2f}")
-        c.drawString(150, y, expense.category)
-        c.drawString(300, y, expense.description or "N/A")
-        c.drawString(450, y, expense.date.strftime('%Y-%m-%d %H:%M'))
+        c.drawString(50, y, f"${expense['amount']:.2f}")
+        c.drawString(150, y, expense['category'])
+        c.drawString(300, y, expense['description'] or "N/A")
+        c.drawString(450, y, expense['date'])
         y -= 20
 
     c.save()
@@ -154,7 +185,49 @@ def export_pdf():
     # Send the file to the user
     return send_file(pdf_path, as_attachment=True)
 
+@app.route('/spending_insights')
+def spending_insights():
+    response = supabase.table('expense').select("*").execute()
+    expenses = response.data
+
+    # Convert string date to datetime object for all expenses
+    for expense in expenses:
+        expense['date'] = datetime.fromisoformat(expense['date'])
+
+    # Group expenses by category
+    spending_by_category = {}
+    for expense in expenses:
+        category = expense['category']
+        amount = expense['amount']
+        if category in spending_by_category:
+            spending_by_category[category] += amount
+        else:
+            spending_by_category[category] = amount
+
+    # Group expenses by month
+    spending_by_month = {}
+    for expense in expenses:
+        month = expense['date'].strftime('%Y-%m')  # Use datetime formatting
+        amount = expense['amount']
+        if month in spending_by_month:
+            spending_by_month[month] += amount
+        else:
+            spending_by_month[month] = amount
+
+    # Group expenses by week
+    spending_by_week = {}
+    for expense in expenses:
+        week = expense['date'].strftime('%Y-%W')  # Use datetime formatting
+        amount = expense['amount']
+        if week in spending_by_week:
+            spending_by_week[week] += amount
+        else:
+            spending_by_week[week] = amount
+
+    return render_template('spending_insights.html',
+                           spending_by_category=spending_by_category.items(),
+                           spending_by_month=spending_by_month.items(),
+                           spending_by_week=spending_by_week.items())
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)

@@ -3,3 +3,6 @@ Flask-SQLalchemy
 Pandas
 reportlab
 Gunicorn
+python-dotenv
+supabase
+supabase-py
