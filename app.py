@@ -5,12 +5,12 @@ import pandas as pd
 import os
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-#from dotenv import load_dotenv
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 
 
-#load_dotenv()  # Load environment variables from .env file
+load_dotenv()  # Load environment variables from .env file
 # Initialize Supabase client using environment variables
 url = os.environ.get('SUPABASE_URL')  # Fetch URL from environment variable
 key = os.environ.get('SUPABASE_KEY')   # Fetch Key from environment variable
